@@ -1,9 +1,0 @@
-[2026-03-24 01:45:10] [INFO] Loading dataset: D:\data-neon\data_validation_agent\data\sample_dataset.csv
-[2026-03-24 01:45:10] [INFO] Configuration loaded from: D:\data-neon\data_validation_agent\config.yaml
-[2026-03-24 01:45:10] [INFO] Missing value check: 6 finding(s)
-[2026-03-24 01:45:10] [INFO] Threshold validation: 4 finding(s)
-[2026-03-24 01:45:10] [INFO] Anomaly detection: 3 finding(s)
-[2026-03-24 01:45:10] [INFO] Cross-field validation: 2 finding(s)
-[2026-03-24 01:45:10] [INFO] Validation complete — 40 records, 15 findings (12 critical, 3 warnings)
-[2026-03-24 01:45:10] [CRITICAL] [COMPLIANCE ESCALATION REQUIRED] 12 critical finding(s) require immediate attention
-[2026-03-24 01:45:10] [INFO] Validation report written to: D:\data-neon\data_validation_agent\output\report.html
