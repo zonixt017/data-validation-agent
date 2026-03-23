@@ -1,0 +1,38 @@
+required_fields:
+  - entity_id
+  - report_date
+  - risk_score
+  - transaction_amount
+  - status
+  - reviewer_id
+  - data_completeness
+
+thresholds:
+  risk_score:
+    min: 0
+    max: 100
+  transaction_amount:
+    min: 0
+    max: 1000000
+  data_completeness:
+    min: 0
+    max: 100
+
+anomaly_detection:
+  method: zscore
+  zscore_threshold: 3
+  fields:
+    - transaction_amount
+    - risk_score
+    - data_completeness
+
+cross_field_rules:
+  - description: "Flagged records must have a reviewer assigned"
+    if_field: status
+    if_value: "flagged"
+    then_field: reviewer_id
+    then_condition: not_null
+
+escalation:
+  critical_threshold: 1
+  notify_label: "COMPLIANCE ESCALATION REQUIRED"

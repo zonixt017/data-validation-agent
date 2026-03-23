@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Data Validation Agent — Compliance Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #1a1d23;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #0f1923 0%, #1a2e44 60%, #133a5e 100%);
+      color: #fff;
+      padding: 36px 48px 28px;
+      border-bottom: 3px solid #00b4d8;
+    }
+    .header-inner { max-width: 1200px; margin: 0 auto; }
+    .header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .header-meta {
+      display: flex;
+      gap: 28px;
+      font-size: 0.82rem;
+      color: #94b4cc;
+      margin-top: 8px;
+    }
+    .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* ── Main container ──────────────────────────────────────── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 48px 60px; }
+
+    /* ── Summary cards ───────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 22px 20px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border-top: 4px solid #00b4d8;
+    }
+    .card.critical { border-top-color: #e63946; }
+    .card.warning  { border-top-color: #f4a31b; }
+    .card.clean    { border-top-color: #2dc653; }
+    .card-number {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .card.critical .card-number { color: #e63946; }
+    .card.warning  .card-number { color: #c8890e; }
+    .card.clean    .card-number { color: #2dc653; }
+    .card-label { font-size: 0.78rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ── Escalation banner ───────────────────────────────────── */
+    .escalation-banner {
+      background: #fef0f0;
+      border: 2px solid #e63946;
+      border-radius: 8px;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+      font-weight: 700;
+      color: #b71c1c;
+      font-size: 1rem;
+    }
+    .escalation-banner .icon { font-size: 1.5rem; }
+
+    /* ── Section headings ────────────────────────────────────── */
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a1d23;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    /* ── Findings table ──────────────────────────────────────── */
+    .table-wrapper {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.855rem; }
+    thead tr {
+      background: #1a2e44;
+      color: #fff;
+    }
+    thead th {
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    tbody tr { border-bottom: 1px solid #f0f2f5; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 11px 14px; vertical-align: top; }
+
+    /* Row colouring */
+    tr.sev-critical { background: #fff5f5; }
+    tr.sev-critical:hover { background: #ffe9e9; }
+    tr.sev-warning  { background: #fffbf0; }
+    tr.sev-warning:hover  { background: #fff3cc; }
+
+    /* Severity badge */
+    .badge {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .badge-critical { background: #e63946; color: #fff; }
+    .badge-warning  { background: #f4a31b; color: #3d2600; }
+
+    /* ── Per-record breakdown ────────────────────────────────── */
+    .record-cards { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
+    .record-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      overflow: hidden;
+    }
+    .record-card-header {
+      background: #f8f9fb;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .record-id {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #1a1d23;
+    }
+    .record-row-label {
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+    .record-issues { padding: 10px 18px 14px; }
+    .issue-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.84rem;
+    }
+    .issue-item:last-child { border-bottom: none; }
+    .issue-field { font-weight: 600; color: #374151; min-width: 170px; }
+    .issue-msg   { color: #4b5563; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 12px;
+    }
+
+    /* ── No-findings state ───────────────────────────────────── */
+    .no-findings {
+      text-align: center;
+      color: #6b7280;
+      padding: 32px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-inner">
+    <h1>Data Validation Agent — Compliance Report</h1>
+    <div class="header-meta">
+      <span>🕐 Generated: {{ summary.timestamp }}</span>
+      <span>🤖 Agent: Data Validation Agent v1.0</span>
+      <span>📂 Neon AI Compliance Suite</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── Summary cards ────────────────────────────────────── -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-number">{{ summary.total_records }}</div>
+      <div class="card-label">Records Validated</div>
+    </div>
+    <div class="card">
+      <div class="card-number">{{ summary.total_findings }}</div>
+      <div class="card-label">Total Findings</div>
+    </div>
+    <div class="card critical">
+      <div class="card-number">{{ summary.critical_count }}</div>
+      <div class="card-label">Critical Issues</div>
+    </div>
+    <div class="card warning">
+      <div class="card-number">{{ summary.warning_count }}</div>
+      <div class="card-label">Warnings</div>
+    </div>
+  </div>
+
+  <!-- ── Escalation banner (conditional) ──────────────────── -->
+  {% if summary.escalation_required %}
+  <div class="escalation-banner">
+    <span class="icon">⚠</span>
+    <span>COMPLIANCE ESCALATION REQUIRED — Critical validation failures detected. Immediate review is mandatory before regulatory submission.</span>
+  </div>
+  {% endif %}
+
+  <!-- ── Findings Table ────────────────────────────────────── -->
+  <div class="section-title">All Findings</div>
+  <div class="table-wrapper">
+    {% if summary.findings %}
+    <table>
+      <thead>
+        <tr>
+          <th>Row</th>
+          <th>Entity ID</th>
+          <th>Rule</th>
+          <th>Field</th>
+          <th>Value</th>
+          <th>Severity</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for finding in summary.findings | sort(attribute='severity') %}
+        <tr class="sev-{{ finding.severity | lower }}">
+          <td>{{ finding.row }}</td>
+          <td>{{ finding.entity_id }}</td>
+          <td><code>{{ finding.rule }}</code></td>
+          <td><code>{{ finding.field }}</code></td>
+          <td>{{ finding.value if finding.value is not none else '—' }}</td>
+          <td>
+            <span class="badge badge-{{ finding.severity | lower }}">
+              {{ finding.severity }}
+            </span>
+          </td>
+          <td>{{ finding.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="no-findings">✅ No findings — all records passed validation.</div>
+    {% endif %}
+  </div>
+
+  <!-- ── Per-record breakdown ──────────────────────────────── -->
+  <div class="section-title">Per-Record Breakdown</div>
+  <div class="record-cards">
+    {% if records_with_issues %}
+      {% for entity_id, issues in records_with_issues.items() %}
+      <div class="record-card">
+        <div class="record-card-header">
+          <span class="record-id">{{ entity_id }}</span>
+          <span class="record-label">Row {{ issues[0].row }}</span>
+          <span class="badge badge-{{ issues | map(attribute='severity') | list | sort | first | lower }}">
+            {{ issues | length }} issue{{ 's' if issues | length > 1 else '' }}
+          </span>
+        </div>
+        <div class="record-issues">
+          {% for issue in issues %}
+          <div class="issue-item">
+            <span class="badge badge-{{ issue.severity | lower }}">{{ issue.severity }}</span>
+            <span class="issue-field">{{ issue.rule }} — {{ issue.field }}</span>
+            <span class="issue-msg">{{ issue.message }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="no-findings">✅ All records passed validation — no per-record issues to display.</div>
+    {% endif %}
+  </div>
+
+</div><!-- /container -->
+
+<!-- ── Footer ──────────────────────────────────────────────── -->
+<footer>
+  Generated by Data Validation Agent v1.0 | Neon AI Compliance Suite
+</footer>
+
+</body>
+</html>
