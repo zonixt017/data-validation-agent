@@ -1,0 +1,23 @@
+/* Drag-drop zone transition */
+#drop-zone {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+/* Findings table sticky header */
+.findings-table-container {
+  max-height: 480px;
+  overflow-y: auto;
+}
+.findings-table-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
+.findings-table-container::-webkit-scrollbar { width: 6px; }
+.findings-table-container::-webkit-scrollbar-track { background: #f1f5f9; }
+.findings-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}

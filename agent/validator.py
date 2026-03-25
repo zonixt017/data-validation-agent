@@ -33,21 +33,30 @@ class DataValidator:
         config_path (str): Path to the config file.
     """
 
-    def __init__(self, config_path: str) -> None:
+    def __init__(self, config_path=None, config_dict=None) -> None:
         """
         Initialise the DataValidator by loading configuration.
 
         Args:
             config_path: Path to the config.yaml file.
+            config_dict: Parsed config dict (used by web layer).
 
         Raises:
+            ValueError: If neither config_path nor config_dict is provided.
             FileNotFoundError: If the config file cannot be found.
             yaml.YAMLError: If the config file is malformed.
         """
-        self.config_path = config_path
-        with open(config_path, "r") as f:
-            self.config = yaml.safe_load(f)
-        log_module.logger.info(f"Configuration loaded from: {config_path}")
+        if config_dict:
+            self.config = config_dict
+            self.config_path = None
+            log_module.logger.info("Configuration loaded from dict (web layer)")
+        elif config_path:
+            self.config_path = config_path
+            with open(config_path, "r") as f:
+                self.config = yaml.safe_load(f)
+            log_module.logger.info(f"Configuration loaded from: {config_path}")
+        else:
+            raise ValueError("Either config_path or config_dict must be provided")
 
     def validate(self, df: pd.DataFrame) -> dict:
         """

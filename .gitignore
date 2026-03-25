@@ -1,7 +1,59 @@
-misc/
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
 
-venv/
+# ── Virtual environments ───────────────────────────────────────────────────────
 .venv/
+venv/
+env/
+ENV/
+.env
+*.env
 
-report/__pycache__/
+# ── Runtime / generated output ────────────────────────────────────────────────
+# Keep the directory structure but ignore generated files
+output/*.html
+output/*.pdf
+output/*.log
+output/uploads/
+
+# ── Screenshots and local media ───────────────────────────────────────────────
+generated_output/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Node.js (Tailwind build tools) ────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ── Misc / internal planning ──────────────────────────────────────────────────
+misc/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+ehthumbs.db
+desktop.ini

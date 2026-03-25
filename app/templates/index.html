@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Dataset — Data Validation Agent{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <h1 class="text-2xl font-bold text-slate-800 mb-1">Upload Dataset</h1>
+  <p class="text-slate-500 text-sm mb-6">Upload a CSV file to run compliance validation checks.</p>
+
+  {% if error %}
+  <div class="bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-3 mb-5 text-sm">
+    ⚠ {{ error }}
+  </div>
+  {% endif %}
+
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+    <form id="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+      <!-- Drop zone -->
+      <div
+        id="drop-zone"
+        class="border-2 border-dashed border-blue-300 rounded-lg p-10 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50"
+        onclick="document.getElementById('file-input').click()"
+      >
+        <div class="text-4xl mb-3">📂</div>
+        <p class="font-semibold text-slate-700">Drop a CSV file here</p>
+        <p class="text-sm text-slate-400 mt-1">or click to browse</p>
+        <p id="file-name" class="text-sm text-blue-600 mt-3 font-medium hidden"></p>
+      </div>
+      <input
+        id="file-input"
+        type="file"
+        name="file"
+        accept=".csv"
+        class="hidden"
+        required
+        onchange="showFileName(this)"
+      >
+
+      <button
+        type="submit"
+        class="mt-5 w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg transition text-sm"
+      >
+        Run Validation
+      </button>
+    </form>
+  </div>
+
+  <!-- Try Sample Dataset -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-sm">
+    <p class="font-semibold text-slate-700 mb-2">No dataset? Try the sample.</p>
+    <form method="post" action="/upload/sample">
+      <button
+        type="submit"
+        class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition"
+      >
+        Try Sample Dataset
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  function showFileName(input) {
+    const label = document.getElementById('file-name');
+    if (input.files && input.files[0]) {
+      label.textContent = '✓ ' + input.files[0].name;
+      label.classList.remove('hidden');
+    }
+  }
+
+  // Drag-and-drop support
+  const dz = document.getElementById('drop-zone');
+
+  dz.addEventListener('dragover', e => {
+    e.preventDefault();
+    dz.classList.add('border-blue-500', 'bg-blue-50');
+  });
+
+  dz.addEventListener('dragleave', () => {
+    dz.classList.remove('border-blue-500', 'bg-blue-50');
+  });
+
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('border-blue-500', 'bg-blue-50');
+    const fi = document.getElementById('file-input');
+    fi.files = e.dataTransfer.files;
+    showFileName(fi);
+  });
+</script>
+{% endblock %}

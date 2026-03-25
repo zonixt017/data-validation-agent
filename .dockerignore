@@ -1,0 +1,42 @@
+# Version control
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment / secrets
+.env
+*.env
+
+# Node (Tailwind dev tools)
+node_modules/
+
+# Generated / runtime output
+output/*.html
+output/*.pdf
+output/*.log
+output/uploads/
+generated_output/
+*.log
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+
+# Internal planning
+misc/
+
+# OS
+.DS_Store
+Thumbs.db

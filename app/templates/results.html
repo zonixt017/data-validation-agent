@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Results — Data Validation Agent{% endblock %}
+
+{% block content %}
+
+<!-- Summary Cards -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Validation Results</h1>
+    <p class="text-sm text-slate-500 mt-0.5">File: <span class="font-mono">{{ filename }}</span> &mdash; {{ run_at }}</p>
+  </div>
+  <a href="/" class="text-sm text-blue-600 hover:underline">← Upload New File</a>
+</div>
+
+<!-- Pass rate -->
+{% set pass_rate = (pass_count / total_records * 100) | round(1) if total_records > 0 else 0 %}
+<div class="rounded-xl p-5 text-center mb-5 {% if pass_rate >= 90 %}bg-green-50 border border-green-200{% elif pass_rate >= 70 %}bg-yellow-50 border border-yellow-200{% else %}bg-red-50 border border-red-200{% endif %}">
+  <p class="text-4xl font-bold {% if pass_rate >= 90 %}text-green-700{% elif pass_rate >= 70 %}text-yellow-700{% else %}text-red-700{% endif %}">{{ pass_rate }}%</p>
+  <p class="text-sm text-slate-500 mt-1">{{ pass_count }} of {{ total_records }} records passed validation</p>
+</div>
+
+<!-- Stats row -->
+<div class="grid grid-cols-4 gap-4 mb-5">
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+    <p class="text-2xl font-bold text-blue-700">{{ total_records }}</p>
+    <p class="text-xs text-slate-500 mt-1">Records Validated</p>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-xl p-4 text-center">
+    <p class="text-2xl font-bold text-slate-700">{{ total_findings }}</p>
+    <p class="text-xs text-slate-500 mt-1">Total Findings</p>
+  </div>
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+    <p class="text-2xl font-bold text-red-600">{{ critical_count }}</p>
+    <p class="text-xs text-slate-500 mt-1">Critical Issues</p>
+  </div>
+  <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+    <p class="text-2xl font-bold text-yellow-600">{{ warning_count }}</p>
+    <p class="text-xs text-slate-500 mt-1">Warnings</p>
+  </div>
+</div>
+
+<!-- Escalation banner -->
+{% if escalation_required %}
+<div class="bg-red-100 border border-red-400 text-red-700 rounded-xl px-5 py-4 mb-5 flex items-start gap-3">
+  <span class="text-xl mt-0.5">⚠</span>
+  <div>
+    <p class="font-bold">COMPLIANCE ESCALATION REQUIRED</p>
+    <p class="text-sm mt-0.5">Critical validation failures detected. Immediate review is mandatory before regulatory submission.</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Download PDF -->
+<div class="flex justify-end mb-4">
+  <a
+    href="/results/download"
+    class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+  >
+    ⬇ Download PDF Report
+  </a>
+</div>
+
+<!-- Findings Table -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-6">
+  <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="font-semibold text-slate-700">All Findings</h2>
+    {% if findings %}
+    <span class="text-xs text-slate-400">{{ findings | length }} finding(s)</span>
+    {% endif %}
+  </div>
+  {% if findings %}
+  <div class="findings-table-container">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+        <tr>
+          <th class="px-3 py-2 text-left w-10">Row</th>
+          <th class="px-3 py-2 text-left w-28">Entity ID</th>
+          <th class="px-3 py-2 text-left w-48">Rule</th>
+          <th class="px-3 py-2 text-left w-36">Field</th>
+          <th class="px-3 py-2 text-left w-24">Value</th>
+          <th class="px-3 py-2 text-left w-24">Severity</th>
+          <th class="px-3 py-2 text-left">Message</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for f in findings %}
+        <tr class="{% if f.severity == 'CRITICAL' %}bg-red-50{% else %}bg-yellow-50{% endif %} hover:opacity-90">
+          <td class="px-3 py-2 text-slate-500 text-xs">{{ f.row }}</td>
+          <td class="px-3 py-2 font-mono text-xs">{{ f.entity_id }}</td>
+          <td class="px-3 py-2 font-mono text-xs text-slate-600">{{ f.rule }}</td>
+          <td class="px-3 py-2 font-mono text-xs">{{ f.field }}</td>
+          <td class="px-3 py-2 text-xs">{{ f.value if f.value is not none else '—' }}</td>
+          <td class="px-3 py-2">
+            <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full
+              {% if f.severity == 'CRITICAL' %}bg-red-100 text-red-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+              {{ f.severity }}
+            </span>
+          </td>
+          <td class="px-3 py-2 text-xs text-slate-600">{{ f.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="px-5 py-8 text-center text-green-600 font-semibold">
+    ✓ All records passed validation — no issues found.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Findings by Entity -->
+{% if findings_by_entity %}
+<div class="bg-white rounded-xl shadow-sm border border-slate-200">
+  <div class="px-5 py-3 border-b border-slate-100">
+    <h2 class="font-semibold text-slate-700">Findings by Entity</h2>
+  </div>
+  <div class="px-5 py-4 space-y-4">
+    {% for entity_id, entity_findings in findings_by_entity.items() %}
+    <div>
+      <p class="font-mono font-bold text-sm text-slate-800">
+        {{ entity_id }}
+        <span class="text-xs font-normal text-slate-400 ml-2">{{ entity_findings | length }} finding(s)</span>
+      </p>
+      <ul class="mt-1 space-y-0.5 pl-4">
+        {% for f in entity_findings %}
+        <li class="text-xs text-slate-600">
+          • <span class="font-semibold {{ 'text-red-600' if f.severity == 'CRITICAL' else 'text-yellow-600' }}">[{{ f.severity }}]</span>
+          {{ f.rule }} — {{ f.field }}: {{ f.message }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

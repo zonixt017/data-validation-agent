@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Data Validation Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 11px; color: #1e293b; background: #fff; }
+  .header {
+    background: #1e40af;
+    color: #fff;
+    padding: 18px 32px 12px 32px;
+    margin-bottom: 18px;
+  }
+  .header h1 { font-size: 16px; font-weight: bold; letter-spacing: 0.5px; }
+  .meta { font-size: 9px; color: #bfdbfe; margin-top: 4px; line-height: 1.6; }
+  .content { padding: 0 32px 60px 32px; }
+  .pass-rate {
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .pass-rate.green { background: #dcfce7; }
+  .pass-rate.yellow { background: #fef9c3; }
+  .pass-rate.red-pr { background: #fee2e2; }
+  .pass-rate .pct { font-size: 32px; font-weight: bold; }
+  .pass-rate .sub { font-size: 10px; color: #475569; margin-top: 2px; }
+  .cards {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .card {
+    flex: 1;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .card.blue { border-color: #bfdbfe; background: #eff6ff; }
+  .card.critical-card { border-color: #fecaca; background: #fff1f2; }
+  .card.warning-card { border-color: #fde68a; background: #fffbeb; }
+  .card .value { font-size: 22px; font-weight: bold; }
+  .card .label { font-size: 9px; color: #64748b; margin-top: 2px; }
+  .escalation {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    color: #b91c1c;
+  }
+  .escalation h3 { font-size: 11px; margin-bottom: 4px; }
+  .section-title {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    margin-top: 16px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  thead th {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 5px 8px;
+    text-align: left;
+    font-weight: bold;
+    color: #475569;
+  }
+  tbody tr { border: 1px solid #e2e8f0; }
+  tbody tr.critical-row { background: #fff1f2; }
+  tbody tr.warning-row { background: #fffbeb; }
+  tbody td { padding: 6px 8px; vertical-align: top; }
+  .badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: bold;
+  }
+  .badge.critical { background: #fee2e2; color: #b91c1c; }
+  .badge.warning { background: #fef9c3; color: #92400e; }
+  .entity-block { margin-bottom: 10px; }
+  .entity-id { font-family: monospace; font-weight: bold; font-size: 11px; }
+  .entity-count {
+    font-size: 10px;
+    color: #64748b;
+    margin-left: 8px;
+  }
+  .entity-finding {
+    font-size: 10px;
+    color: #475569;
+    padding: 2px 0 2px 14px;
+    line-height: 1.5;
+  }
+  .no-findings {
+    color: #16a34a;
+    font-weight: bold;
+    text-align: center;
+    padding: 16px;
+  }
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 6px 32px;
+    font-size: 9px;
+    color: #94a3b8;
+    display: flex;
+    justify-content: space-between;
+  }
+  @page {
+    margin: 15mm 12mm 18mm 12mm;
+    size: A4;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Data Validation Agent — Compliance Report</h1>
+  <div class="meta">
+    Generated: {{ run_at }}<br>
+    File: {{ filename }}<br>
+    Agent: Data Validation Agent v0.2 | Neon AI Compliance Suite
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="pass-rate {% if pass_rate >= 90 %}green{% elif pass_rate >= 70 %}yellow{% else %}red-pr{% endif %}">
+    <p class="pct">{{ pass_rate }}%</p>
+    <p class="sub">{{ pass_count }} of {{ total_records }} records passed validation</p>
+  </div>
+
+  <div class="cards">
+    <div class="card blue">
+      <p class="value">{{ total_records }}</p>
+      <p class="label">Records Validated</p>
+    </div>
+    <div class="card">
+      <p class="value">{{ total_findings }}</p>
+      <p class="label">Total Findings</p>
+    </div>
+    <div class="card critical-card">
+      <p class="value">{{ critical_count }}</p>
+      <p class="label">Critical Issues</p>
+    </div>
+    <div class="card warning-card">
+      <p class="value">{{ warning_count }}</p>
+      <p class="label">Warnings</p>
+    </div>
+  </div>
+
+  {% if escalation_required %}
+  <div class="escalation">
+    <h3>⚠ COMPLIANCE ESCALATION REQUIRED</h3>
+    <p>Critical validation failures detected. Immediate review is mandatory before regulatory submission.</p>
+  </div>
+  {% endif %}
+
+  <div class="section-title">All Findings</div>
+  {% if findings %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width:4%">Row</th>
+        <th style="width:10%">Entity ID</th>
+        <th style="width:18%">Rule</th>
+        <th style="width:14%">Field</th>
+        <th style="width:10%">Value</th>
+        <th style="width:9%">Severity</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in findings %}
+      <tr class="{{ 'critical-row' if f.severity == 'CRITICAL' else 'warning-row' }}">
+        <td>{{ f.row }}</td>
+        <td style="font-family:monospace">{{ f.entity_id }}</td>
+        <td style="font-family:monospace;font-size:9px">{{ f.rule }}</td>
+        <td style="font-family:monospace">{{ f.field }}</td>
+        <td>{{ f.value if f.value is not none else '—' }}</td>
+        <td>
+          <span class="badge {{ 'critical' if f.severity == 'CRITICAL' else 'warning' }}">
+            {{ f.severity }}
+          </span>
+        </td>
+        <td>{{ f.message }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="no-findings">✓ All records passed validation — no issues found.</p>
+  {% endif %}
+
+  {% if findings_by_entity %}
+  <div class="section-title">Findings by Entity</div>
+  {% for entity_id, entity_findings in findings_by_entity.items() %}
+  <div class="entity-block">
+    <span class="entity-id">{{ entity_id }}</span>
+    <span class="entity-count">{{ entity_findings | length }} finding(s)</span>
+    {% for f in entity_findings %}
+    <div class="entity-finding">
+      • [{{ f.severity }}] {{ f.rule }} — {{ f.field }}: {{ f.message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+
+<div class="footer">
+  <span>Data Validation Agent v0.2 | Neon AI Compliance Suite</span>
+  <span>{{ run_at }}</span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: data-validation-agent
+    env: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: SESSION_SECRET_KEY
+        generateValue: true

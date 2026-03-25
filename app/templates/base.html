@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Data Validation Agent{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/tailwind.css">
+  <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+  <!-- Nav -->
+  <nav class="bg-blue-800 text-white shadow">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-lg font-bold tracking-tight">
+        🛡 Data Validation Agent
+      </a>
+      <div class="flex gap-6 text-sm font-medium">
+        <a href="/" class="hover:text-blue-200 transition">Upload</a>
+        <a href="/config" class="hover:text-blue-200 transition">Config</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-xs text-slate-400 py-6">
+    Data Validation Agent v0.2 &mdash; Neon AI Compliance Suite
+  </footer>
+
+</body>
+</html>
