@@ -180,14 +180,81 @@ All findings share a consistent format across every rule module:
 | `v0.2.0` | FastAPI web UI, drag-and-drop upload, PDF download, YAML config editor, Docker + Render deployment |
 
 ---
-
-## License
-
-MIT
-
+---
 ## Future releases
 
 | Version | Description |
 |---------|-------------|
 |"v0.3.0"| AI powered insights on the validated data, the findings, and the issues in the data. |
 |"v0.4.0"| AI powered rule generator, along with a rule playground which enables users to use AI to generate custom rules, the scope, variables of the output, etc. |
+---
+
+## Scope of future releases.
+v0.3
+3.1) AI Findings Explainer (Recommended MVP)
+What it does:
+After validation, user clicks “Explain Findings” and gets a plain-English summary:
+
+top issues
+
+likely root causes
+
+what to fix first
+
+suggested remediation checklist
+
+
+Where it plugs in:
+Use existing results payload (critical_count, warning_count, findings) from upload/result flow.
+
+3.2) AI Rule Q&A Assistant (No auto-writing rules yet)
+What it does:
+A chat panel where users ask:
+
+“What does threshold validation do?”
+
+“Why did row 22 fail?”
+
+“How can I reduce anomalies?”
+
+Assistant answers using current config + findings context.
+
+Why it’s easier than AI rule generation:
+
+Read-only assistant (no direct config mutation)
+
+Much safer from compliance/governance perspective
+
+
+Grounding sources: config + findings + rule descriptions in app.
+
+3.3) AI Config Copilot (Suggest-only)
+What it does:
+Given dataset stats and findings, LLM suggests config improvements:
+
+threshold adjustments
+
+anomaly threshold tuning
+
+missing-field policy suggestions
+
+Then user manually approves and saves.
+
+v.0.4
+4) AI Natural-Language Rule Drafting (your original idea, but Phase 2)
+What it does:
+Plain English → structured draft rule (not auto-enabled).
+
+Only do this after:
+
+strict rule schema
+
+validation layer
+
+human approval workflow
+
+conflict detection
+
+## License
+
+MIT
