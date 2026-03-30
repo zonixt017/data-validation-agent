@@ -296,4 +296,6 @@ MIT
 
 v.0.3 -AI Summary Output
 <img width="1252" height="914" alt="image" src="https://github.com/user-attachments/assets/dae393ba-05d8-49c7-8c37-8c69ae1135ce" />
+<img width="1283" height="561" alt="image" src="https://github.com/user-attachments/assets/fab21b37-9580-4de3-a7da-5a571deba7e5" />
+<img width="1272" height="613" alt="image" src="https://github.com/user-attachments/assets/55864fbb-423d-4d81-815d-21320cf7bab6" />
 
