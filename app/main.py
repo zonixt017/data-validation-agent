@@ -6,7 +6,7 @@ import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from app.routes import upload, results, config_editor
+from app.routes import upload, results, config_editor, ai
 from app.state import RESULT_STORE
 
 app = FastAPI(
@@ -26,6 +26,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(upload.router)
 app.include_router(results.router)
 app.include_router(config_editor.router)
+app.include_router(ai.router)
 
 
 @app.on_event("startup")
