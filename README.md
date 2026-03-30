@@ -184,3 +184,10 @@ All findings share a consistent format across every rule module:
 ## License
 
 MIT
+
+## Future releases
+
+| Version | Description |
+|---------|-------------|
+|"v0.3.0"| AI powered insights on the validated data, the findings, and the issues in the data. |
+|"v0.4.0"| AI powered rule generator, along with a rule playground which enables users to use AI to generate custom rules, the scope, variables of the output, etc. |
