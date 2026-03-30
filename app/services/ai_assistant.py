@@ -13,15 +13,30 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 from collections import Counter
 from typing import Any
 from urllib import request as urlrequest
+from urllib.error import HTTPError
 
+logger = logging.getLogger(__name__)
 
+# FIX: "openrouter/auto" is not a real OpenRouter model ID and will cause a 400.
+# Use a known free model as the default instead.
 PROVIDER_DEFAULT_MODELS = {
-    "openrouter": "openrouter/auto",
+    "openrouter": "google/gemma-3-4b-it:free",
     "groq": "llama-3.1-8b-instant",
+}
+
+# Models known to support response_format=json_object on their respective providers.
+# Any model NOT in this set will rely on prompt-based JSON enforcement instead.
+JSON_MODE_SUPPORTED_MODELS: set[str] = {
+    # Groq models with native JSON mode support
+    "llama-3.1-8b-instant",
+    "llama-3.1-70b-versatile",
+    "llama-3.3-70b-versatile",
+    "mixtral-8x7b-32768",
 }
 
 
@@ -123,32 +138,77 @@ def _hash_payload(payload: dict) -> str:
     return hashlib.sha256(blob).hexdigest()
 
 
-def _call_configured_llm(system_prompt: str, user_prompt: str, temperature: float = 0.1) -> tuple[str, dict] | None:
+def _extract_json_from_content(content: str) -> dict:
+    """
+    Parse JSON from model response content.
+
+    Handles three cases:
+    1. Clean JSON string  →  parse directly
+    2. Markdown fenced    →  strip ```json ... ``` then parse
+    3. JSON embedded in   →  find first '{' and last '}' and extract
+       surrounding prose
+    """
+    content = content.strip()
+
+    # Case 1: clean JSON
+    if content.startswith("{"):
+        return json.loads(content)
+
+    # Case 2: markdown fenced block
+    if "```" in content:
+        # pull content between first and last fence
+        parts = content.split("```")
+        for part in parts[1::2]:          # odd-indexed = inside fences
+            part = part.strip()
+            if part.startswith("json"):
+                part = part[4:].strip()
+            if part.startswith("{"):
+                return json.loads(part)
+
+    # Case 3: JSON embedded somewhere in prose
+    start = content.find("{")
+    end = content.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        return json.loads(content[start : end + 1])
+
+    raise ValueError(f"No JSON object found in model response: {content[:200]!r}")
+
+
+def _call_configured_llm(
+    system_prompt: str, user_prompt: str, temperature: float = 0.1
+) -> tuple[str, dict] | None:
     """
     Call configured LLM provider and return (provider_name, parsed_json).
 
     Returns None when provider is disabled, key missing, or call fails.
+    Logs all failures with enough detail to diagnose without re-deploying.
     """
     status = get_provider_status()
     provider = status["provider"]
     if provider == "none" or not status["enabled"]:
+        logger.info("LLM provider not enabled — using fallback. Reason: %s", status.get("reason"))
         return None
 
     api_key = _provider_api_key(provider)
     endpoint = _provider_endpoint(provider)
     model = status["model"]
     if not (api_key and endpoint and model):
+        logger.warning("LLM call aborted — missing api_key/endpoint/model for provider '%s'", provider)
         return None
 
-    payload = {
+    # FIX: Only send response_format=json_object for models that actually support it.
+    # Most OpenRouter free models (including Gemma) do NOT support this parameter
+    # and will return a 400 error when it's included.
+    payload: dict = {
         "model": model,
         "temperature": temperature,
-        "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
     }
+    if model in JSON_MODE_SUPPORTED_MODELS:
+        payload["response_format"] = {"type": "json_object"}
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -169,11 +229,31 @@ def _call_configured_llm(system_prompt: str, user_prompt: str, temperature: floa
     )
 
     try:
-        with urlrequest.urlopen(req, timeout=20) as resp:
+        with urlrequest.urlopen(req, timeout=25) as resp:
             body = json.loads(resp.read().decode("utf-8"))
             content = body["choices"][0]["message"]["content"]
-            return provider, json.loads(content)
-    except Exception:
+            logger.debug("LLM raw response (%s): %s", provider, content[:300])
+            parsed = _extract_json_from_content(content)
+            return provider, parsed
+
+    except HTTPError as e:
+        # Read and log the response body for HTTP errors (4xx / 5xx)
+        try:
+            error_body = e.read().decode("utf-8")
+        except Exception:
+            error_body = "<unreadable>"
+        logger.warning(
+            "LLM HTTP error %s from provider '%s' (model=%s): %s",
+            e.code, provider, model, error_body,
+        )
+        return None
+
+    except json.JSONDecodeError as e:
+        logger.warning("LLM response JSON parse failed (%s): %s", provider, e)
+        return None
+
+    except Exception as e:
+        logger.warning("LLM call failed unexpectedly (%s): %s: %s", provider, type(e).__name__, e)
         return None
 
 
@@ -183,7 +263,9 @@ def generate_explainer(result: dict) -> dict:
 
     system_prompt = (
         "You are a compliance data quality assistant. "
-        "Use only provided context. Return strict JSON with keys: "
+        "Use only provided context. "
+        "You MUST respond with a single raw JSON object — no markdown, no prose, no code fences. "
+        "Required keys: "
         "summary_text (string), top_issues (array of strings), "
         "actions (array of strings), confidence_notes (array of strings)."
     )
@@ -255,7 +337,8 @@ def answer_rule_question(result: dict, question: str) -> dict:
     system_prompt = (
         "You are a rule-based compliance assistant. "
         "Use only provided context and avoid fabricating dataset details. "
-        "Return strict JSON with keys: answer (string), bullets (array of strings), "
+        "You MUST respond with a single raw JSON object — no markdown, no prose, no code fences. "
+        "Required keys: answer (string), bullets (array of strings), "
         "confidence_notes (array of strings)."
     )
     user_prompt = (
