@@ -293,3 +293,7 @@ conflict detection
 ## License
 
 MIT
+
+v.0.3 -AI Summary Output
+<img width="1252" height="914" alt="image" src="https://github.com/user-attachments/assets/dae393ba-05d8-49c7-8c37-8c69ae1135ce" />
+
