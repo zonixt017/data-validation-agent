@@ -123,9 +123,10 @@ class DataValidator:
             1 for f in all_findings if f.get("severity") == "WARNING"
         )
 
-        # Rows with any finding
-        flagged_rows = {f["row"] for f in all_findings}
-        pass_count = total_records - len(flagged_rows)
+        # "Pass" metric is based on critical findings only:
+        # each critical finding is treated as one failed record unit.
+        # Warnings are informational and do not reduce pass_count.
+        pass_count = max(total_records - critical_count, 0)
 
         # Escalation logic
         critical_threshold = self.config.get("escalation", {}).get(

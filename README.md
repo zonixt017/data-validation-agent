@@ -108,6 +108,41 @@ docker run -p 8000:8000 -e SESSION_SECRET_KEY=your-secret data-validation-agent
 
 ---
 
+## AI Provider Setup (OpenRouter / Groq)
+
+The AI Explainer and AI Rule Q&A features support provider-based setup using env vars.
+
+### Supported providers
+- `openrouter`
+- `groq`
+- fallback mode (`none`) when provider/key is missing
+
+### Required environment variables
+```bash
+# choose provider: openrouter | groq
+LLM_PROVIDER=openrouter
+
+# provider model (optional; defaults are used if omitted)
+LLM_MODEL=openrouter/auto
+
+# keys (set only the one for your provider)
+OPENROUTER_API_KEY=...
+GROQ_API_KEY=...
+```
+
+Optional (OpenRouter headers):
+```bash
+OPENROUTER_SITE_URL=https://your-app-url.onrender.com
+OPENROUTER_APP_NAME=data-validation-agent
+```
+
+### Render deployment notes
+- Add these keys in **Render Dashboard → Environment**.
+- Never commit API keys to GitHub.
+- If provider is not configured, app automatically uses deterministic local fallback responses.
+
+---
+
 ## Configuration
 
 All validation rules live in `config.yaml` — nothing is hardcoded. Edit to adapt the agent to any dataset or regulatory context.
